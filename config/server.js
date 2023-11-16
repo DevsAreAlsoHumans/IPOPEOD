@@ -10,7 +10,7 @@ function startServer() {
     app.set('view engine', 'handlebars')
     app.set('views', path.join(__dirname, "../App/views"))
     app.engine('handlebars', engine())
-    app.use('/App', appRouter)
+    app.use('/', appRouter)
     app.listen(port, ()=> {
         console.log(`Exemple app listen on http://localhost:${port}/`)
     })
