@@ -1,28 +1,20 @@
-const userModel = require('../models/userModel');
+const {userModel, connection} = require('../models/userModel');
 const bcrypt = require('bcrypt');
 
-const library = { 
 
-    createDb: () => {
-        // Connecter à MySQL
-    connection.connect((err) => {
-        if (err) {
-            console.error('Erreur lors de la connexion à MySQL:', err);
-            return;
-        }
-        console.log('Connecté à MySQL avec succès.');
-
-        // Créer la base de données
+    function createDb() {
         const dbName = process.env.DB_NAME;
-        connection.query(`CREATE DATABASE IF NOT EXISTS ${dbName}`, (err, result) => {
+
+        // Connexion à MySQL sans spécifier la base de données
+        connection.query(`CREATE DATABASE IF NOT EXISTS \`${dbName}\``, (err) => {
             if (err) {
                 console.error('Erreur lors de la création de la base de données:', err);
                 return;
             }
             console.log(`Base de données '${dbName}' créée ou déjà existante.`);
 
-            // Utiliser la base de données créée
-            connection.changeUser({database : dbName}, (err) => {
+            // Changer pour utiliser la base de données créée
+            connection.changeUser({ database: dbName }, (err) => {
                 if (err) {
                     console.error('Erreur lors du changement de la base de données:', err);
                     return;
@@ -42,7 +34,7 @@ const library = {
                     )
                 `;
                 
-                connection.query(createTableQuery, (err, result) => {
+                connection.query(createTableQuery, (err) => {
                     if (err) {
                         console.error('Erreur lors de la création de la table `users`:', err);
                         return;
@@ -51,8 +43,7 @@ const library = {
                 });
             });
         });
-    });
-    },
+    }
 
     
     /**
@@ -60,7 +51,7 @@ const library = {
      * @param {Object} userData  
      * @param {Function} callback 
      */
-    createUser: (userData, callback) => {
+    function createUser (userData, callback){
         bcrypt.hash(userData.password, 10, (err, hashedPassword) => {
             if (err) {
                 callback(err, null);
@@ -68,7 +59,7 @@ const library = {
             }
             userModel.insertUser(userData.username, userData.email, hashedPassword, callback);
         });
-    },
+    }
 
 
     /**
@@ -76,7 +67,7 @@ const library = {
      * @param {Object} userData  
      * @param {Function} callback 
      */
-    updateUserMdp: (userData, callback) => {
+    function updateUserMdp(userData, callback) {
         userModel.getUserByEmailOrUsername(userData.email, (err, results) => {
             if (err || results.length === 0) {
                 callback(err || new Error('No user found or user is blocked'), null);
@@ -91,7 +82,7 @@ const library = {
                 userModel.updateUserPassword(userData.email, hashedPassword, callback);
             });
         });
-    },
+    }
 
 
     /**
@@ -100,7 +91,7 @@ const library = {
      * @param {String} password 
      * @param {Function} callback 
      */
-    login: (login, password, callback) => {
+    function login (login, password, callback){
         userModel.getUserByEmailOrUsername(login, (err, results) => {
             if (err || results.length === 0) {
                 callback(err || new Error('Aucun utilisateur trouvé'), null);
@@ -118,7 +109,7 @@ const library = {
                 callback(null, user);
             });
         });
-    },
+    }
 
 
     /**
@@ -126,7 +117,7 @@ const library = {
      * @param {Object} req 
      * @param {Function} callback 
      */
-    logout: (req, callback) => {
+    function logout(req, callback) {
         req.session.destroy((err) => {
             if (err) {
                 callback(err, null);
@@ -134,14 +125,14 @@ const library = {
             }
             callback(null, 'Déconnexion réussie');
         });
-    },
+    }
 
     /**
      * 
      * @param {String} email 
      * @param {Function} callback 
      */
-    blockUser: (email, callback) => {
+    function blockUser(email, callback){
         userModel.blockUser(email, (err, result) => {
             if (err) {
                 callback(err, null);
@@ -149,7 +140,7 @@ const library = {
             }
             callback(null, 'Utilisateur bloquer');
         });
-    },
+    }
 
 
     /**
@@ -157,7 +148,7 @@ const library = {
      * @param {String} email 
      * @param {Function} callback 
      */
-    unblockUser: (email, callback) => {
+    function unblockUser (email, callback){
         userModel.unblockUser(email, (err, result) => {
             if (err) {
                 callback(err, null);
@@ -165,7 +156,7 @@ const library = {
             }
             callback(null, 'Utilisateur débloquer');
         });
-    },
+    }
 
 
 
@@ -174,7 +165,7 @@ const library = {
      * @param {String} email 
      * @param {Function} callback 
      */
-    deleteUser: (email, callback) => {
+    function deleteUser(email, callback){
         userModel.deleteUser(email, (err, result) => {
             if (err) {
                 callback(err, null);
@@ -182,7 +173,7 @@ const library = {
             }
             callback(null, 'Utilisateur supprimer');
         });
-    },
+    }
 
 
 
@@ -190,7 +181,7 @@ const library = {
      * 
      * @param {Function} callback 
      */
-    getAllUsers: (callback) => {
+    function getAllUsers(callback){
         userModel.getAllUsers((err, users) => {
             if (err) {
                 callback(err, null);
@@ -199,6 +190,16 @@ const library = {
             callback(null, users);
         });
     }
-};
 
-module.exports = {library};
+
+module.exports = {
+    createDb,
+    createUser,
+    login,
+    logout,
+    blockUser,
+    updateUserMdp,
+    unblockUser,
+    deleteUser,
+    getAllUsers
+}

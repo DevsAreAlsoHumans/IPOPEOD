@@ -1,6 +1,6 @@
 function compare(p, np){
     if(p === np){
-        return p;
+        return true;
     }
     else{
         return false

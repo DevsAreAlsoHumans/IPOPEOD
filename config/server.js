@@ -14,11 +14,13 @@ const {isAuthenticated, hasPermission } = require('../App/middleware/auths_middl
 
 
 function startServer() {
+    app.use(express.urlencoded({ extended: true })); 
     app.set('view engine', 'handlebars')
     app.set('views', path.join(__dirname, "../App/views/"))
     app.engine('handlebars', engine())
     app.use('/', appRouter)
-    app.use(bodyparser.urlencoded({extended: true}));
+    // app.use(bodyparser.urlencoded({extended: true}));
+    
     app.listen(port, ()=> {
         console.log(`Exemple app listen on http://localhost:${port}/`)
     })
