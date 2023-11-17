@@ -67,7 +67,12 @@ class Auths {
         library.login(login, password, req, (err, result) => {
             if (err) {
                 console.log("Erreur lors de la connexion", err);
-                return res.status(500).send("Erreur lors de la connexion.");
+                if(res.status(500))
+                {
+                    const echec = "Adresse mail ou mot de passe incorrect";
+                    res.render("connection", {echec})
+                    return
+                }
             } else {
                 const user = result.username;
                 res.render("home", { user });

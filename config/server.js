@@ -15,7 +15,7 @@ const {isAuthenticated, hasPermission } = require('../App/middleware/auths_middl
 app.use(session({
     secret: process.env.SESSION_SECRET, 
     resave: false,
-    saveUninitialized: false,
+    saveUninitialized: true,
 }));
 
 function startServer() {
