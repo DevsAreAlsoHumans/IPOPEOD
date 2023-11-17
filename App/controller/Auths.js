@@ -1,5 +1,5 @@
 const compare = require("../utils/compare")
-const compare = require("../library/db-library")
+const library = require("../library/db-library")
 class Auths {
     regist(req, res){
         creatDb();
@@ -14,7 +14,7 @@ class Auths {
                 email: req.body.email,
             }
 
-            createUser(userData, (err, data) => {
+            library.createUser(userData, (err, data) => {
                 if(err) {
                     console.log("Erreur lors de la création de l'utilisateur", err);
                     res.status(500).send("Erreur serveur");
@@ -27,3 +27,6 @@ class Auths {
         }
     }
 }
+
+
+module.exports = Auths;
