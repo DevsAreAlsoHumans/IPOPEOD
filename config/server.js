@@ -1,5 +1,6 @@
 const express = require("express")
 const path = require("path")
+const bodyparser = require('body-parser')
 const { engine } = require("express-handlebars")
 const session = require('express-session');
 const appRouter = require('./routes/routes')
@@ -17,6 +18,7 @@ function startServer() {
     app.set('views', path.join(__dirname, "../App/views/"))
     app.engine('handlebars', engine())
     app.use('/', appRouter)
+    app.use(bodyparser.urlencoded({extended: true}));
     app.listen(port, ()=> {
         console.log(`Exemple app listen on http://localhost:${port}/`)
     })
