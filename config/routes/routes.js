@@ -21,6 +21,8 @@ router.post('/connection', (req, res) => authController.connect(req, res));
 router.get('/connection', (req, res) => welcomeController.connection(req, res));
 
 
+router.get('/logout', (req, res) => authController.logout(req, res));
+
 
 
 module.exports = router
