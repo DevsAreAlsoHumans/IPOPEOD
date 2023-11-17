@@ -70,7 +70,7 @@ const bcrypt = require('bcrypt');
     function updateUserMdp(userData, callback) {
         userModel.getUserByEmailOrUsername(userData.email, (err, results) => {
             if (err || results.length === 0) {
-                callback(err || new Error('No user found or user is blocked'), null);
+                callback(err || new Error('Cet utilisateur n\'existe pas ou est bloqué'), null);
                 return;
             }
 
@@ -94,14 +94,14 @@ const bcrypt = require('bcrypt');
     function login (login, password, req, callback){
         userModel.getUserByEmailOrUsername(login, (err, results) => {
             if (err || results.length === 0) {
-                callback(err || new Error('Aucun utilisateur trouvé'), null);
+                callback(err || new Error('Adresse mail ou mot de passe incorrect'), null);
                 return;
             }
 
             const user = results[0];
             bcrypt.compare(password, user.password, (err, isMatch) => {
                 if (err || !isMatch) {
-                    callback(err || new Error('Mot de pass non identique'), null);
+                    callback(err || new Error('Adresse mail ou mot de passe incorrect'), null);
                     return;
                 }
                 // Création de la session
@@ -124,7 +124,7 @@ const bcrypt = require('bcrypt');
                 callback(err, null);
                 return;
             }
-            callback(null, 'Déconnexion réussie');
+            callback(null, null);
         });
     }
 
