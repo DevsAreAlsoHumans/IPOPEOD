@@ -1,19 +1,16 @@
-<html>
-	<body>
-		<form>
+
+		<form methode="post" action="/connection">
 			<div class="row mb-3">
 				<label for="email" class="col-sm-2 col-form-label">Adresse mail :</label>
 				<div class="col-sm-10">
-				<input type="email" class="form-control" id="email">
+				<input type="email" name="email" class="form-control" id="email" >
 				</div>
 			</div>
 			<div class="row mb-3">
 				<label for="password" class="col-sm-2 col-form-label">Mot de passe :</label>
 				<div class="col-sm-10">
-				<input type="password" class="form-control" id="password">
+				<input type="password" name="mdp" class="form-control" id="password">
 			</div>
 			</div>
 			<button type="submit" class="btn btn-primary">Se connecter</button>
 		</form>
-	</body>
-</html>

@@ -30,16 +30,17 @@ class Auths {
 
     connect(req, res){
 
-        const username = req.body.username;
-        const password = req.body.mdp;
+        console.log("Je suis bien là")
+        // const email = req.body.email;
+        // const password = req.body.mdp;
 
-        library.login(username, password, (err, result) =>{
-            if(err) {
-                res.status(500).send("Connexion impossible");
-            } else {
-                res.render(".");
-            }
-        })
+        // library.login(email, password, (err, result) =>{
+        //     if(err) {
+        //         res.status(500).send("Connexion impossible");
+        //     } else {
+        //         res.render(".");
+        //     }
+        // })
     
     }
 
