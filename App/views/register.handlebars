@@ -1,13 +1,32 @@
 <html>
 	<body>
 		<form method="post" action="/register">
-			<ul>
-				<ol><label for="email">Adresse mail : </label><input type="mail" name="email"></ol>
-				<ol><label for="username"></label> Nom d'utilisateur : <input type="text" name="username"></ol>
-				<ol><label for="mdp">Mot de passe : </label><input type="password" name="mdp"></ol>
-				<ol><label for="mdpConfirm">Confirmer le mot de passe : </label><input type="password" name="mdpConfirm"></ol>
-				<ol><button type="submit">S'inscrire</button></ol>
-			</ul>
+			<div class="row mb-3">
+				<label for="email" class="col-sm-2 col-form-label">Adresse mail :</label>
+				<div class="col-sm-10">
+				<input type="email" class="form-control" id="email" name="email">
+				</div>
+			</div>
+			<div class="row mb-3">
+				<label for="username" class="col-sm-2 col-form-label">Nom d'utilisateur :</label>
+				<div class="col-sm-10">
+				<input type="text" class="form-control" id="username" name="username">
+				</div>
+			</div>
+			<div class="row mb-3">
+				<label for="mdp" class="col-sm-2 col-form-label">Mot de passe :</label>
+				<div class="col-sm-10">
+				<input type="password" class="form-control" id="password" name="mdp">
+				</div>
+			</div>
+			
+			<div class="row mb-3">
+				<label for="mdpConfirm" class="col-sm-2 col-form-label">Confirmer le mot de passe :</label>
+				<div class="col-sm-10">
+				<input type="password" class="form-control" id="password" name="mdpConfirm">
+				</div>
+			</div>
+			<button type="submit" class="btn btn-primary">S'inscrire</button>
 		</form>
 	</body>
 </html>
