@@ -3,7 +3,6 @@ require('dotenv').config();
 
 // Connexion à MySQL
 const connection = mysql.createConnection({
-    database: process.env.DB_NAME, 
     host: process.env.DB_HOST_NAME,     
     user: process.env.DB_USER,     
     password: process.env.DB_PASSWORD 
@@ -54,4 +53,4 @@ const userModel = {
     }
 };
 
-module.exports = {userModel};
+module.exports = {userModel, connection};
