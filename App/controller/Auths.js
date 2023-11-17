@@ -27,3 +27,6 @@ class Auths {
         }
     }
 }
+
+
+module.exports = Authsuths;
