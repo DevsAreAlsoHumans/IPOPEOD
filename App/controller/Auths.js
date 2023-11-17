@@ -4,48 +4,77 @@ const library = require("../library/db-library")
 class Auths {
     regist(req, res){
         library.createDb();
-        const mdp = compare.compare(req.body.mdp, req.body.mdpConfirm);
-        if (mdp === false) {
-            res.send("Les mots de passe ne sont pas identiques")
+        const { username, mdp, mdpConfirm, email } = req.body;
+    
+        if (!username || !mdp || !mdpConfirm || !email) {
+            return res.status(400).send("Tous les champs sont requis.");
         }
-        else{
-            const userData = {
-                username: req.body.username, 
-                password: req.body.mdp,
-                email: req.body.email,
+    
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            return res.status(400).send("Format d'email invalide.");
+        }
+    
+        if (mdp.length < 6) {
+            return res.status(400).send("Le mot de passe doit contenir au moins 6 caractères.");
+        }
+    
+        // Comparer les mots de passe
+        const mdpIdentiques = compare.compare(mdp, mdpConfirm);
+        if (!mdpIdentiques) {
+            return res.status(400).send("Les mots de passe ne sont pas identiques.");
+        }
+    
+        const userData = {
+            username, 
+            password: mdp,
+            email
+        };
+    
+        library.createUser(userData, (err, data) => {
+            if (err) {
+                console.log("Erreur lors de la création de l'utilisateur", err);
+                return res.status(500).send("Erreur serveur");
+            } else {
+                res.render("connection");
             }
-
-            library.createUser(userData, (err, data) => {
-                if(err) {
-                    console.log("Erreur lors de la création de l'utilisateur", err);
-                    res.status(500).send("Erreur serveur");
-                } else {
-                    res.render("connection");
-                }
-            }) 
-        
-        }
+        });
     }
+    
 
 
     connect(req, res){
-
-        const login = {
-            username: req.body.username,
-            email: req.body.email,
+        const { username, email, mdp } = req.body;
+    
+        if (!(username || email) || !mdp) {
+            return res.status(400).send("Le nom d'utilisateur, l'email et le mot de passe sont requis.");
         }
-        const password = req.body.mdp;
-
-        library.login(login, password, req, (err, result) =>{
-            if(err) {
-                res.status(500).send(err);
+    
+        if (email) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                return res.status(400).send("Format d'email invalide.");
+            }
+        }
+    
+        if (mdp.length === 0) {
+            return res.status(400).send("Le mot de passe ne peut pas être vide.");
+        }
+    
+        const login = { username, email };
+        const password = mdp;
+    
+        library.login(login, password, req, (err, result) => {
+            if (err) {
+                console.log("Erreur lors de la connexion", err);
+                return res.status(500).send("Erreur lors de la connexion.");
             } else {
                 const user = result.username;
-                res.render("home", {user});
+                res.render("home", { user });
             }
-        })
-    
+        });
     }
+    
 
     logout(req, res){
         library.logout(req, (err, result) => {
