@@ -1,13 +1,4 @@
-const mysql = require('mysql');
-require('dotenv').config();
-
-// Connexion à MySQL
-const connection = mysql.createConnection({
-    host: process.env.DB_HOST_NAME,     
-    user: process.env.DB_USER,     
-    password: process.env.DB_PASSWORD 
-});
-
+const connection = require("../../config/database")
 const userModel = {
     
     // Insère un nouvel utilisateur dans la base de données
@@ -25,7 +16,7 @@ const userModel = {
     // Récupère un utilisateur par email ou username
     getUserByEmailOrUsername: (login, callback) => {
         const query = 'SELECT * FROM users WHERE username = ? OR email = ?';
-        connection.query(query, [login, login], callback);
+        connection.query(query, [login.username, login.email], callback); 
     },
 
      // Bloquer un utilisateur

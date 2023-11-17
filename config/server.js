@@ -12,6 +12,11 @@ const port = 8000
 // Middleware d'authentification
 const {isAuthenticated, hasPermission } = require('../App/middleware/auths_middleware'); 
 
+app.use(session({
+    secret: process.env.SESSION_SECRET, 
+    resave: false,
+    saveUninitialized: true,
+}));
 
 function startServer() {
     app.use(express.urlencoded({ extended: true })); 
@@ -25,11 +30,6 @@ function startServer() {
         console.log(`Exemple app listen on http://localhost:${port}/`)
     })
 
-    // app.use(session({
-    //     secret: process.env.SESSION_SECRET, 
-    //     resave: false,
-    //     saveUninitialized: true,
-    // }));
     // Route protégée
     // Route accessible seulement par les utilisateurs avec le rôle spécifier
     // router.get('/admin-only', isAuthenticated, hasPermission('admin'), (req, res) => {

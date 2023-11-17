@@ -87,11 +87,11 @@ const bcrypt = require('bcrypt');
 
     /**
      * 
-     * @param {String} login 
+     * @param {Object} login 
      * @param {String} password 
      * @param {Function} callback 
      */
-    function login (login, password, callback){
+    function login (login, password, req, callback){
         userModel.getUserByEmailOrUsername(login, (err, results) => {
             if (err || results.length === 0) {
                 callback(err || new Error('Aucun utilisateur trouvé'), null);
@@ -105,6 +105,7 @@ const bcrypt = require('bcrypt');
                     return;
                 }
                 // Création de la session
+                
                 req.session.user = { id: user.id, username: user.username, email: user.email };
                 callback(null, user);
             });
