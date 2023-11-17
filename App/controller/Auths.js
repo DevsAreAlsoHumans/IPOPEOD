@@ -29,4 +29,4 @@ class Auths {
 }
 
 
-module.exports = Authsuths;
+module.exports = Auths;
