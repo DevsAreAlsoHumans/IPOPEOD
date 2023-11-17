@@ -1,4 +1,4 @@
-const userModel = require('./userModel');
+const userModel = require('..models/userModel');
 const bcrypt = require('bcrypt');
 
 const library = { 
