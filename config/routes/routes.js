@@ -13,10 +13,11 @@ const authController = new AuthController();
 router.get('/', (req, res) => welcomeController.index(req, res));
 
 
-router.get('/register', (req, res) => welcomeController.register(req, res));
 router.post('/register', (req, res) => authController.regist(req, res))
+router.get('/register', (req, res) => welcomeController.register(req, res));
 
 
+router.post('/connection', (req, res) => authController.connect(req, res));
 router.get('/connection', (req, res) => welcomeController.connection(req, res));
 
 
