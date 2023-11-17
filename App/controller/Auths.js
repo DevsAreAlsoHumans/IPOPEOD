@@ -38,10 +38,10 @@ class Auths {
 
         library.login(login, password, req, (err, result) =>{
             if(err) {
-                res.status(500).send("Connexion impossible "+err);
-    
+                res.status(500).send(err);
             } else {
-                res.render("home");
+                const user = result.username;
+                res.render("home", {user});
             }
         })
     
@@ -58,6 +58,15 @@ class Auths {
     }
 
 
+    logout(req, res){
+        library.logout(req, (err, result) => {
+            if(err) {
+                res.status(500).send("Problème lors de la déconnexion "+err);
+            } else {
+                res.render("home");
+            }
+        })
+    }
 
 
 }
