@@ -1,4 +1,5 @@
 const compare = require("../utils/compare")
+const setTime = require("../utils/setTime")
 const library = require("../library/db-library")
 class Auths {
     regist(req, res){
@@ -19,12 +20,32 @@ class Auths {
                     console.log("Erreur lors de la création de l'utilisateur", err);
                     res.status(500).send("Erreur serveur");
                 } else {
-                    res.render("/connection")
+                    res.render("connection");
                 }
             }) 
         
         }
     }
+
+
+    connect(req, res){
+
+        const username = req.body.username;
+        const password = req.body.mdp;
+
+        library.login(username, password, (err, result) =>{
+            if(err) {
+                res.status(500).send("Connexion impossible");
+            } else {
+                res.render(".");
+            }
+        })
+    
+    }
+
+
+
+
 }
 
 
