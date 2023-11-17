@@ -47,6 +47,16 @@ class Auths {
     
     }
 
+    logout(req, res){
+        library.logout(req, (err, result) => {
+            if(err) {
+                res.status(500).send("Problème lors de la déconnexion "+err);
+            } else {
+                res.render("home");
+            }
+        })
+    }
+
 
 
 
