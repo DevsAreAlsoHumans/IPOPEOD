@@ -1,179 +1,204 @@
-const mysql = require('mysql');
+const userModel = require('./userModel');
 const bcrypt = require('bcrypt');
-require('dotenv').config();
 
-// Connexion à Mysql
-const connection = mysql.createConnection({
-    database: process.env.DB_NAME, 
-    host: process.env.DB_HOST_NAME,     
-    user: process.env.DB_USER,     
-    password: process.env.DB_PASSWORD 
-});
+const library = { 
 
-/**
- * Function to create Database and user Table
- */
-function createDb() {
+    createDb: () => {
+        // Connecter à MySQL
     connection.connect((err) => {
-        if (err) throw err;
-        console.log('Connecté à MySQL!');
-        
-        // Créer une nouvelle base de données
-        connection.query(`CREATE DATABASE IF NOT EXISTS ${process.env.DB_NAME}`, (err, result) => {
-            if (err) throw err;
-            console.log('Base de données créée ou déjà existante');
-        });
-        
-        // Créer une table
-        const createTableQuery = `
-            CREATE TABLE IF NOT EXISTS users (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            username VARCHAR(255) NOT NULL UNIQUE,
-            email VARCHAR(255) NOT NULL UNIQUE,
-            password VARCHAR(255) NOT NULL,
-            token VARCHAR(255),
-            blocked BOOLEAN DEFAULT FALSE,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            )
-        `;
-        
-        connection.query(createTableQuery, (err, result) => {
-            if (err) {
-                console.error('Erreur lors de la création de la table `Users`:', err);
-            } else {
-                console.log('Table `Users` créée ou déjà existante');
-            }
-        });
-    });
-}
-
-/**
- * @param {object} userData 
- * @param {function} callback
- */
-function createUser(userData, callback) {  
-    bcrypt.hash(userData.password, 10, (err, hashedPassword) => {
         if (err) {
-            console.error('Erreur lors du hachage du mot de passe:', err);
-            callback(err, null);
+            console.error('Erreur lors de la connexion à MySQL:', err);
             return;
         }
-        
-        const query = `INSERT INTO users (username, email, password, blocked) VALUES (?, ?, ?, ?)`;
+        console.log('Connecté à MySQL avec succès.');
 
-        connection.query(query, [userData.username, userData.email, hashedPassword, 0], (err, result) => {
+        // Créer la base de données
+        const dbName = process.env.DB_NAME;
+        connection.query(`CREATE DATABASE IF NOT EXISTS ${dbName}`, (err, result) => {
             if (err) {
-                console.error('Erreur lors de l\'insertion du nouvel utilisateur:', err);
-                callback(err, null);
-            } else {
-                callback(null, true);
-            }
-        });
-    });
-}
-
-/**
- * @param {object} userData
- * @param {function} callback
- */
-function updateUserMdp(userData, callback) {
-    connection.query('SELECT * FROM users WHERE email = ? AND blocked = 0', [userData.email], (err, results) => {
-        if (err) {
-            console.error('Erreur lors de la vérification de l\'utilisateur:', err);
-            callback(err, null);
-            return;
-        }
-
-        if (results.length === 0) {
-            console.log('L\'utilisateur est bloqué ou n\'existe pas.');
-            callback(null, false);
-            return;
-        }
-
-        bcrypt.hash(userData.newPass, 10, (err, hashedPassword) => {
-            if (err) {
-                console.error('Erreur lors du hachage du mot de passe:', err);
-                callback(err, null);
+                console.error('Erreur lors de la création de la base de données:', err);
                 return;
             }
+            console.log(`Base de données '${dbName}' créée ou déjà existante.`);
 
-            connection.query('UPDATE users SET password = ? WHERE email = ?', [hashedPassword, userData.email], (err, result) => {
+            // Utiliser la base de données créée
+            connection.changeUser({database : dbName}, (err) => {
                 if (err) {
-                    console.error('Erreur lors de la mise à jour du mot de passe:', err);
-                    callback(err, null);
-                } else {
-                    callback(null, true);
+                    console.error('Erreur lors du changement de la base de données:', err);
+                    return;
                 }
+
+                // Créer la table utilisateurs
+                const createTableQuery = `
+                    CREATE TABLE IF NOT EXISTS users (
+                        id INT AUTO_INCREMENT PRIMARY KEY,
+                        username VARCHAR(255) NOT NULL UNIQUE,
+                        email VARCHAR(255) NOT NULL UNIQUE,
+                        password VARCHAR(255) NOT NULL,
+                        role ENUM('user', 'admin', 'editor') DEFAULT 'user',
+                        token VARCHAR(255),
+                        blocked BOOLEAN DEFAULT FALSE,
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    )
+                `;
+                
+                connection.query(createTableQuery, (err, result) => {
+                    if (err) {
+                        console.error('Erreur lors de la création de la table `users`:', err);
+                        return;
+                    }
+                    console.log('Table `users` créée ou déjà existante.');
+                });
             });
         });
     });
-}
+    },
 
-/**
- * @param {string} email
- * @param {function} callback
- */
-function getUserByEmail(email, callback) {
-    const query = 'SELECT * FROM users WHERE email = ?';
-    connection.query(query, [email], (err, results) => {
-        if (err) {
-            console.error('Erreur lors de la récupération de l\'utilisateur:', err);
-            callback(err, null);
-            return;
-        }
-
-        if (results.length === 0) {
-            console.log('Aucun utilisateur trouvé avec cet email:', email);
-            callback(null, null);
-            return;
-        }
-
-        callback(null, results[0]);
-    });
-}
+    
+    /**
+     * 
+     * @param {Object} userData  
+     * @param {Function} callback 
+     */
+    createUser: (userData, callback) => {
+        bcrypt.hash(userData.password, 10, (err, hashedPassword) => {
+            if (err) {
+                callback(err, null);
+                return;
+            }
+            userModel.insertUser(userData.username, userData.email, hashedPassword, callback);
+        });
+    },
 
 
-/**
- * Fonction de connexion pour les utilisateurs
- * @param {string} login - Le nom d'utilisateur ou l'email de l'utilisateur
- * @param {string} password - Le mot de passe fourni par l'utilisateur
- * @param {function} callback - Une fonction de rappel pour gérer la réponse
- */
-function login(login, password, callback) {
-    const query = 'SELECT * FROM users WHERE username = ? OR email = ?';
-  
-    connection.query(query, [login, login], (err, results) => {
-      if (err) {
-        console.error('Erreur lors de la recherche de l\'utilisateur:', err);
-        callback(err, null);
-        return;
-      }
-  
-      if (results.length === 0) {
-        console.log('Aucun utilisateur trouvé avec ce nom d\'utilisateur ou email:', login);
-        callback(null, false);
-        return;
-      }
-  
-      const user = results[0];
-  
-      // Comparer le mot de passe fourni avec le mot de passe haché stocké
-      bcrypt.compare(password, user.password, (err, isMatch) => {
-        if (err) {
-          console.error('Erreur lors de la comparaison des mots de passe:', err);
-          callback(err, null);
-          return;
-        }
-  
-        if (!isMatch) {
-          console.log('Mot de passe incorrect pour:', login);
-          callback(null, false);
-        } else {
-          console.log('Connexion réussie');
-          callback(null, true, user);
-        }
-      });
-    });
-  }
+    /**
+     * 
+     * @param {Object} userData  
+     * @param {Function} callback 
+     */
+    updateUserMdp: (userData, callback) => {
+        userModel.getUserByEmailOrUsername(userData.email, (err, results) => {
+            if (err || results.length === 0) {
+                callback(err || new Error('No user found or user is blocked'), null);
+                return;
+            }
 
-module.exports = { createDb, createUser, updateUserMdp, getUserByEmail, login }
+            bcrypt.hash(userData.newPass, 10, (err, hashedPassword) => {
+                if (err) {
+                    callback(err, null);
+                    return;
+                }
+                userModel.updateUserPassword(userData.email, hashedPassword, callback);
+            });
+        });
+    },
+
+
+    /**
+     * 
+     * @param {String} login 
+     * @param {String} password 
+     * @param {Function} callback 
+     */
+    login: (login, password, callback) => {
+        userModel.getUserByEmailOrUsername(login, (err, results) => {
+            if (err || results.length === 0) {
+                callback(err || new Error('Aucun utilisateur trouvé'), null);
+                return;
+            }
+
+            const user = results[0];
+            bcrypt.compare(password, user.password, (err, isMatch) => {
+                if (err || !isMatch) {
+                    callback(err || new Error('Mot de pass non identique'), null);
+                    return;
+                }
+                // Création de la session
+                req.session.user = { id: user.id, username: user.username, email: user.email };
+                callback(null, user);
+            });
+        });
+    },
+
+
+    /**
+     * 
+     * @param {Object} req 
+     * @param {Function} callback 
+     */
+    logout: (req, callback) => {
+        req.session.destroy((err) => {
+            if (err) {
+                callback(err, null);
+                return;
+            }
+            callback(null, 'Déconnexion réussie');
+        });
+    },
+
+    /**
+     * 
+     * @param {String} email 
+     * @param {Function} callback 
+     */
+    blockUser: (email, callback) => {
+        userModel.blockUser(email, (err, result) => {
+            if (err) {
+                callback(err, null);
+                return;
+            }
+            callback(null, 'Utilisateur bloquer');
+        });
+    },
+
+
+    /**
+     * 
+     * @param {String} email 
+     * @param {Function} callback 
+     */
+    unblockUser: (email, callback) => {
+        userModel.unblockUser(email, (err, result) => {
+            if (err) {
+                callback(err, null);
+                return;
+            }
+            callback(null, 'Utilisateur débloquer');
+        });
+    },
+
+
+
+    /**
+     * 
+     * @param {String} email 
+     * @param {Function} callback 
+     */
+    deleteUser: (email, callback) => {
+        userModel.deleteUser(email, (err, result) => {
+            if (err) {
+                callback(err, null);
+                return;
+            }
+            callback(null, 'Utilisateur supprimer');
+        });
+    },
+
+
+
+    /**
+     * 
+     * @param {Function} callback 
+     */
+    getAllUsers: (callback) => {
+        userModel.getAllUsers((err, users) => {
+            if (err) {
+                callback(err, null);
+                return;
+            }
+            callback(null, users);
+        });
+    }
+};
+
+module.exports = {library};
