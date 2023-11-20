@@ -184,7 +184,6 @@ class Auths {
         
     }
 
-}
 
 
 module.exports = Auths;
