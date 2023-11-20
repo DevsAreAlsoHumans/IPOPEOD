@@ -16,6 +16,14 @@ app.use(session({
     secret: process.env.SESSION_SECRET, 
     resave: false,
     saveUninitialized: true,
+    cookie: {
+        maxAge: parseInt(process.env.COOKIE_MAX_AGE),
+        domain: process.env.COOKIE_DOMAIN,
+        path: process.env.COOKIE_PATH,
+        httpOnly: process.env.COOKIE_HTTP_ONLY.toLowerCase() === 'true',
+        secure: process.env.COOKIE_SECURE.toLowerCase() === 'true',
+        sameSite: process.env.COOKIE_SAME_SITE
+    }
 }));
 
 function startServer() {

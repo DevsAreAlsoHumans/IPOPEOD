@@ -4,6 +4,7 @@
 		<div class="col-lg-4 col-sm-8 ">
 			<h1 class="text-center mb-2">Connection</h1>
 			<p class="text-center text-danger mb-2">{{ echec }} </p>
+			<p class="text-center text-success mb-2">{{ msg }} </p>
 			<form method="post" action="/connection" >
 				<div class="row mb-3">
 					<label for="email" class="col-form-label">Adresse mail :</label>
@@ -17,6 +18,10 @@
 					<button type="submit" class="btn btn-primary text-white">Se connecter</button>
 				</div>
 			</form>
+			<div class="row">
+				<p class="mt-2">Pas encore de compte ? <a href="/register">S'inscrire</a></p>
+				<p> <a href="/lostPass">Mot de passe oublié ?</a></p>
+			</div>
 		</div>
 	</div>
 	<div class="col-lg-4 col-sm-2 "></div>
