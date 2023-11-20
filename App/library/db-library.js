@@ -1,5 +1,8 @@
 const {userModel, connection} = require('../models/userModel');
+const transporter = require('../../config/emailService');
 const bcrypt = require('bcrypt');
+const crypto = require('crypto');
+
 
 
     function createDb() {
@@ -29,6 +32,7 @@ const bcrypt = require('bcrypt');
                         password VARCHAR(255) NOT NULL,
                         role ENUM('user', 'admin', 'editor') DEFAULT 'user',
                         token VARCHAR(255),
+                        token_exp DATETIME,  
                         blocked BOOLEAN DEFAULT FALSE,
                         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                     )
@@ -94,20 +98,21 @@ const bcrypt = require('bcrypt');
     function login (login, password, req, callback){
         userModel.getUserByEmailOrUsername(login, (err, results) => {
             if (err || results.length === 0) {
-                callback(err || new Error('Adresse mail ou mot de passe incorrect'), null);
+                callback(err, null);
                 return;
             }
 
             const user = results[0];
             bcrypt.compare(password, user.password, (err, isMatch) => {
                 if (err || !isMatch) {
-                    callback(err || new Error('Adresse mail ou mot de passe incorrect'), null);
+                    callback(err, null);
                     return;
+                } else{
+                    // Création de la session
+                    req.session.user = { id: user.id, username: user.username, email: user.email };
+                    callback(null, user);
                 }
-                // Création de la session
                 
-                req.session.user = { id: user.id, username: user.username, email: user.email };
-                callback(null, user);
             });
         });
     }
@@ -118,12 +123,13 @@ const bcrypt = require('bcrypt');
      * @param {Object} req 
      * @param {Function} callback 
      */
-    function logout(req, callback) {
+    function logout(req, res, callback) {
         req.session.destroy((err) => {
             if (err) {
                 callback(err, null);
                 return;
             }
+            res.clearCookie('connect.sid');
             callback(null, null);
         });
     }
@@ -193,6 +199,89 @@ const bcrypt = require('bcrypt');
     }
 
 
+    /**
+     * 
+     * @param {String} email 
+     * @param {Function} callback 
+     */
+    function forgotPassword(email, callback){
+        userModel.getUserByEmailOrUsername({email: email}, (err, result) => {
+            if (err) {
+                callback("Erreur lors de la vérification de l'utilisateur", null)
+                return
+            }
+    
+            if (result.length === 0) {
+                callback("Aucun utilisateur trouvé", null)
+                return
+            }
+
+            const token = crypto.randomBytes(20).toString('hex');
+            const token_expiration = new Date(); // Date et heure actuelles
+            token_expiration.setHours(token_expiration.getHours() + 1); // Ajoute 1 heure à la date a laquelle le token est générer
+            userModel.savePasswordResetToken(email, token, token_expiration, (err, result) => {
+                if (err) {
+                    console.log("Erreur lors de la sauvegarde du token", err);
+                    return res.status(500).send("Erreur serveur lors de la sauvegarde du token");
+                }else{
+                    callback(err, token);
+                }
+            })            
+        })
+    }
+
+
+    /**
+     * 
+     * @param {String} token 
+     * @param {Function} callback 
+     */
+    function verifyToken(token, callback) {
+        userModel.verifyToken(token, (err) => {
+            if(err){
+                return callback(err)
+            }
+            callback(null)
+        })
+    }
+
+
+    /**
+     * 
+     * @param {String} email 
+     * @param {String} token 
+     * @param {Function} callback 
+     */
+    function sendPasswordResetEmail(email, token, callback) {
+        const mailOptions = {
+            from: process.env.EMAIL_FROM, 
+            to: email, 
+            subject: 'Réinitialisation de votre mot de passe',
+            text: `Pour réinitialiser votre mot de passe, cliquez sur ce lien: ${process.env.FRONTEND_URL}/reset_password/?token=${token}`
+        };
+    
+        transporter.sendMail(mailOptions, (err, info) => {
+            if (err) {
+                callback(err, null);
+            } else {
+                callback(null, 'Email envoyé: ' + info.response)
+            }
+        });
+    }
+
+
+    function razMdp(mdp, token, callback){
+        bcrypt.hash(mdp, 10, (err, hashedPassword) => {
+            if (err) {
+                
+                return callback(err);
+            }
+            userModel.resetPassword(hashedPassword, token, callback)
+        })
+    }
+
+    
+
 module.exports = {
     createDb,
     createUser,
@@ -202,5 +291,9 @@ module.exports = {
     updateUserMdp,
     unblockUser,
     deleteUser,
-    getAllUsers
+    getAllUsers,
+    forgotPassword,
+    verifyToken,
+    sendPasswordResetEmail,
+    razMdp,
 }

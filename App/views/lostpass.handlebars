@@ -1,0 +1,24 @@
+<div class="container-fluid mt-3">
+	<div class="col-lg-4 col-sm-2 "></div>
+	<div class="row justify-content-center">
+		<div class="col-lg-4 col-sm-8 ">
+			<h1 class="text-center mb-2">Mot de passe oublié</h1>
+            <p class="mb-2">Vous avez oublié votre mot de passe ? Veuillez entrer votre adresse email ci-dessous afin de réinitialiser votre mot de passe.</p>
+			<p class="text-center text-danger mb-2">{{ echec }} </p>
+			<form method="post" action="/lostPass" >
+				<div class="row mb-3">
+					<label for="email" class="col-form-label">Adresse mail :</label>
+					<input type="email" class="form-control" id="email" name="email">
+				</div>
+				<div class="row justify-content-center">
+					<button type="submit" class="btn btn-primary text-white">Envoyer</button>
+				</div>
+			</form>
+            <div class="row">
+                <p class="text-success mt-2">{{ msg }} </p>
+                <p class="text-danger text-center">{{ echecmsg }} </p>
+            </div>
+		</div>
+	</div>
+	<div class="col-lg-4 col-sm-2 "></div>
+</div>	

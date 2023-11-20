@@ -23,6 +23,13 @@ router.get('/connection', (req, res) => welcomeController.connection(req, res));
 
 router.get('/logout', (req, res) => authController.logout(req, res));
 
+router.post('/lostpass', (req, res) => authController.lostPass(req, res));
+router.get('/lostpass', (req, res) => welcomeController.lostPass(req, res));
+
+
+router.post('/reset_password', (req, res) => authController.reset_password(req, res));
+router.get('/reset_password', (req, res) => welcomeController.reset_password(req, res));
+
 
 
 module.exports = router
